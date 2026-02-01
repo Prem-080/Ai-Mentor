@@ -128,7 +128,7 @@ const Dashboard = () => {
     user.purchasedCourses.forEach((purchasedCourse) => {
       // Find the course in allCourses to get lesson count
       const courseInfo = coursesData.allCourses.find(
-        (c) => c.id === purchasedCourse.courseId
+        (c) => c.id === purchasedCourse.courseId,
       );
       if (courseInfo) {
         const totalLessons = courseInfo.lessons
@@ -177,12 +177,12 @@ const Dashboard = () => {
   const myCourses = coursesData.allCourses
     .filter((course) =>
       user?.purchasedCourses?.some(
-        (purchased) => purchased.courseId === course.id
-      )
+        (purchased) => purchased.courseId === course.id,
+      ),
     )
     .map((course) => {
       const purchasedCourse = user?.purchasedCourses?.find(
-        (p) => p.courseId === course.id
+        (p) => p.courseId === course.id,
       );
       const totalLessons = course.lessons
         ? parseInt(course.lessons.split(" ")[0])
@@ -204,8 +204,8 @@ const Dashboard = () => {
           course.level === "Beginner"
             ? "bg-blue-100 text-blue-800"
             : course.level === "Intermediate"
-            ? "bg-green-100 text-green-800"
-            : "bg-yellow-100 text-yellow-800",
+              ? "bg-green-100 text-green-800"
+              : "bg-yellow-100 text-yellow-800",
         image: course.image,
         progressColor: "bg-indigo-600",
       };
@@ -222,12 +222,12 @@ const Dashboard = () => {
   const continueLearning = coursesData.allCourses
     .filter((course) =>
       user?.purchasedCourses?.some(
-        (purchased) => purchased.courseId === course.id
-      )
+        (purchased) => purchased.courseId === course.id,
+      ),
     )
     .filter((course) => {
       const purchasedCourse = user?.purchasedCourses?.find(
-        (p) => p.courseId === course.id
+        (p) => p.courseId === course.id,
       );
       const totalLessons = course.lessons
         ? parseInt(course.lessons.split(" ")[0])
@@ -239,7 +239,7 @@ const Dashboard = () => {
     .slice(0, 3) // Limit to 3 courses
     .map((course) => {
       const purchasedCourse = user?.purchasedCourses?.find(
-        (p) => p.courseId === course.id
+        (p) => p.courseId === course.id,
       );
       const totalLessons = course.lessons
         ? parseInt(course.lessons.split(" ")[0])
@@ -365,7 +365,7 @@ const Dashboard = () => {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {coursesData.allCourses.slice(0, 3).map((course, index) => (
-                    <Link to={`/course-preview/${course.id}`} key={index}>
+                    <Link to={`/learning/${course.id}`} key={index}>
                       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm h-full">
                         <div className="relative">
                           <img
@@ -506,7 +506,7 @@ const Dashboard = () => {
                           <tr key={index} className="hover:bg-gray-50">
                             <td className="px-4 py-4">
                               <Link
-                                to={`/course-preview/${course.id}`}
+                                to={`/learning/${course.id}`}
                                 className="flex items-center"
                               >
                                 <img
@@ -629,7 +629,7 @@ const Dashboard = () => {
                       >
                         {day}
                       </div>
-                    )
+                    ),
                   )}
                 </div>
 

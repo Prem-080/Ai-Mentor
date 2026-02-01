@@ -1,226 +1,173 @@
-import Course from "../models/Course.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import Course from "../models/Course.js"; // kept for future use
 
-// @desc    Get all courses
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+/* =========================
+   GET ALL COURSES (JSON)
+========================= */
 const getCourses = async (req, res) => {
   try {
-    const courses = await Course.find(
-      {},
-      "id title category categoryColor lessons level price rating students image isBookmarked"
+    const coursesPath = path.join(
+      __dirname,
+      "../../frontend/public/data/courses.json"
     );
+
+    const rawData = fs.readFileSync(coursesPath, "utf-8");
+    const jsonData = JSON.parse(rawData);
+
+    const courses = (jsonData.popularCourses || []).map((course) => ({
+      id: course.id,
+      title: course.title,
+      category: course.category,
+      level: course.level,
+      lessons: course.lessons,
+      price: course.price,
+      rating: course.rating,
+      students: course.students,
+      image: course.image,
+    }));
+
     res.json(courses);
   } catch (error) {
-    console.error("GET COURSES ERROR:", error);
-    res.status(500).json({ message: "Server Error" });
+    console.error("GET COURSES JSON ERROR:", error);
+    res.status(500).json({ message: "Failed to load courses" });
   }
 };
 
-// @desc    Get course by ID
+/* =========================
+   GET COURSE BY ID (JSON)
+========================= */
 const getCourseById = async (req, res) => {
   try {
-    const course = await Course.findOne({ id: Number(req.params.id) });
+    const coursesPath = path.join(
+      __dirname,
+      "../../frontend/public/data/courses.json"
+    );
+
+    const rawData = fs.readFileSync(coursesPath, "utf-8");
+    const jsonData = JSON.parse(rawData);
+
+    const course = jsonData.popularCourses.find(
+      (c) => c.id === Number(req.params.id)
+    );
+
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
+
     res.json(course);
   } catch (error) {
-    console.error("GET COURSE ERROR:", error);
-    res.status(500).json({ message: "Server Error" });
+    console.error("GET COURSE BY ID ERROR:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// @desc    Get learning data for a course
-const getCourseLearningData = async (req, res) => {
-  try {
-    // if (!req.user) {
-    //   return res.status(401).json({ message: "Not authorized" });
-    // }
-
-    const courseId = Number(req.params.id);
-    // const User = (await import("../models/User.js")).default;
-    // const user = await User.findById(req.user._id);
-
-    // if (
-    //   !user ||
-    //   !user.purchasedCourses?.some((c) => Number(c.courseId) === courseId)
-    // ) {
-    //   return res
-    //     .status(403)
-    //     .json({ message: "Access denied. Course not purchased." });
-    // }
-
-    const course = await Course.findOne(
-      { id: courseId },
-      "id title modules course"
-    );
-    if (!course) {
-      return res
-        .status(404)
-        .json({ message: "Course learning data not found" });
-    }
-
-    // const purchasedCourse = user.purchasedCourses.find(
-    //   (pc) => Number(pc.courseId) === courseId
-    // );
-
-    // const currentLesson = purchasedCourse?.progress?.currentLesson || null;
-
-    // If no current lesson, set to first lesson
-    let currentLesson = null; // purchasedCourse?.progress?.currentLesson || null;
-    if (!currentLesson && course.modules && course.modules.length > 0) {
-      const firstModule = course.modules[0];
-      if (firstModule.lessons && firstModule.lessons.length > 0) {
-        currentLesson = firstModule.lessons[0];
-      }
-    }
-
-    res.json({
-      ...course.toObject(),
-      currentLesson,
-    });
-  } catch (error) {
-    console.error("LEARNING DATA ERROR:", error);
-    res.status(500).json({ message: "Server Error" });
-  }
-};
-
-// @desc    Get stats cards
-const getStatsCards = async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Not authorized" });
-    }
-
-    const User = (await import("../models/User.js")).default;
-    const user = await User.findById(req.user._id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const totalCourses = user.purchasedCourses?.length || 0;
-    const completedCourses =
-      user.purchasedCourses?.filter(
-        (c) => c.progress?.completedLessons?.length > 0
-      ).length || 0;
-
-    const totalHours = user.analytics?.totalHours || 0;
-
-    const statsCards = [
-      {
-        icon: "/AI_Tutor_New_UI/Icons/play_button.svg",
-        value: `${totalCourses - completedCourses}`,
-        label: "Courses in Progress",
-        bgColor: "bg-purple-50",
-        iconBg: "bg-purple-100",
-      },
-      {
-        icon: "/AI_Tutor_New_UI/Icons/check_mark.svg",
-        value: `${completedCourses}`,
-        label: "Completed",
-        bgColor: "bg-green-50",
-        iconBg: "bg-green-100",
-      },
-      {
-        icon: "/AI_Tutor_New_UI/Icons/time_spent.svg",
-        value: `${Math.round(totalHours)}h`,
-        label: "Learning Hours",
-        bgColor: "bg-blue-50",
-        iconBg: "bg-blue-100",
-      },
-    ];
-
-    res.json({ statsCards });
-  } catch (error) {
-    console.error("STATS ERROR:", error);
-    res.status(500).json({ message: "Server Error" });
-  }
-};
-
-// @desc    Get my courses
+/* =========================
+   GET MY COURSES (SAFE)
+========================= */
 const getMyCourses = async (req, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ message: "Not authorized" });
+      return res.json([]);
     }
 
-    const User = (await import("../models/User.js")).default;
-    const user = await User.findById(req.user._id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const purchasedCourseIds = user.purchasedCourses.map((c) =>
-      Number(c.courseId)
+    const coursesPath = path.join(
+      __dirname,
+      "../../frontend/public/data/courses.json"
     );
 
-    const courses = await Course.find({ id: { $in: purchasedCourseIds } });
+    const rawData = fs.readFileSync(coursesPath, "utf-8");
+    const jsonData = JSON.parse(rawData);
 
-    const coursesWithProgress = courses.map((course) => {
-      const pc = user.purchasedCourses.find(
-        (c) => Number(c.courseId) === course.id
-      );
-      const courseData = course.toObject();
+    const purchasedIds =
+      req.user.purchasedCourses?.map((c) => Number(c.courseId)) || [];
 
-      const totalLessons = parseInt(courseData.lessons?.split(" ")[0]) || 0;
-      const completedLessons = pc?.progress?.completedLessons?.length || 0;
+    const myCourses = (jsonData.popularCourses || []).filter((course) =>
+      purchasedIds.includes(course.id)
+    );
 
-      courseData.progress =
-        totalLessons > 0
-          ? Math.round((completedLessons / totalLessons) * 100)
-          : 0;
-
-      courseData.status =
-        completedLessons === totalLessons && totalLessons > 0
-          ? "Completed"
-          : completedLessons > 0
-          ? "In Progress"
-          : "Not Started";
-
-      courseData.lessons = `${completedLessons} of ${totalLessons} lessons`;
-
-      return courseData;
-    });
-
-    res.json(coursesWithProgress);
+    res.json(myCourses);
   } catch (error) {
     console.error("MY COURSES ERROR:", error);
-    res.status(500).json({ message: "Server Error" });
+    res.json([]);
   }
 };
 
-// ====================
-// STUB FUNCTIONS (to prevent export errors)
-// ====================
+/* =========================
+   Learning Data
+========================= */
+const getCourseLearningData = async (req, res) => {
+  // res.status(501).json({ message: "Not implemented yet" });
+  try {
+    const learningPath = path.join(
+      __dirname,
+      "../../frontend/public/data/learning.json"
+    );
+
+    if (!fs.existsSync(learningPath)) {
+      return res.status(404).json({ message: "Learning data not found" });
+    }
+
+    const raw = fs.readFileSync(learningPath, "utf-8");
+    const jsonData = JSON.parse(raw);
+
+    const id = String(Number(req.params.id));
+    const learning = jsonData[id];
+
+    if (!learning) {
+      return res.status(404).json({ message: "Learning data not found" });
+    }
+
+    // Ensure the course object includes an id
+    const courseObj = { ...(learning.course || {}), id: Number(id) };
+
+    res.json({ ...learning, course: courseObj });
+  } catch (error) {
+    console.error("GET COURSE LEARNING DATA ERROR:", error);
+    res.status(500).json({ message: "Failed to load learning data" });
+  }
+};
+
+const getStatsCards = async (req, res) => {
+  res.json({
+    totalCourses: 0,
+    completedCourses: 0,
+    hoursLearned: 0,
+    certificates: 0,
+  });
+};
 
 const addCourse = async (req, res) => {
-  res.status(501).json({ message: "addCourse not implemented yet" });
+  res.status(501).json({ message: "addCourse not implemented" });
 };
 
 const deleteCourse = async (req, res) => {
-  res.status(501).json({ message: "deleteCourse not implemented yet" });
+  res.status(501).json({ message: "deleteCourse not implemented" });
 };
 
 const updateLessonVideo = async (req, res) => {
-  res.status(501).json({ message: "updateLessonVideo not implemented yet" });
+  res.status(501).json({ message: "updateLessonVideo not implemented" });
 };
 
 const addSubtopics = async (req, res) => {
-  res.status(501).json({ message: "addSubtopics not implemented yet" });
+  res.status(501).json({ message: "addSubtopics not implemented" });
 };
 
 const addLessons = async (req, res) => {
-  res.status(501).json({ message: "addLessons not implemented yet" });
+  res.status(501).json({ message: "addLessons not implemented" });
 };
 
 const addModules = async (req, res) => {
-  res.status(501).json({ message: "addModules not implemented yet" });
+  res.status(501).json({ message: "addModules not implemented" });
 };
 
-// ====================
-// EXPORTS
-// ====================
-
+/* =========================
+   EXPORTS
+========================= */
 export {
   getCourses,
   getCourseById,

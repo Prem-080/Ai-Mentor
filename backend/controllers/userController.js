@@ -184,6 +184,26 @@ const updateUserSettings = async (req, res) => {
 const updateUserProfile = async (req, res) => {
   res.status(501).json({ message: "updateUserProfile not implemented yet" });
 };
+// ❗ DEV / ADMIN ONLY
+const removePurchasedCourse = async (req, res) => {
+  try {
+    const { courseId } = req.body;
+
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.purchasedCourses = user.purchasedCourses.filter(
+      (c) => Number(c.courseId) !== Number(courseId)
+    );
+
+    await user.save();
+
+    res.json({ message: "Course removed successfully" });
+  } catch (error) {
+    console.error("REMOVE COURSE ERROR:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 // ====================
 // EXPORTS
@@ -197,4 +217,5 @@ export {
   getWatchedVideos, // stub
   updateUserSettings, // stub
   updateUserProfile, // stub
+  removePurchasedCourse,
 };

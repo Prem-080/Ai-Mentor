@@ -1,132 +1,97 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-import { Play, CheckCircle, Clock, Star, Bookmark } from "lucide-react";
+import { Star, Bookmark, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import API_BASE_URL from "../lib/api";
 
 const CoursesPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState("my-courses");
   const { user } = useAuth();
+  const navigate = useNavigate();
 
-  const Navigate = useNavigate();
+  /* ================= STATE ================= */
+  const [exploreCourses, setExploreCourses] = useState([]);
+  const [myCourses, setMyCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const CoursesPage = () => {
-    const Navigate = useNavigate();
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showEnrollPopup, setShowEnrollPopup] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+
+  /* ================= FETCH COURSES ================= */
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const [exploreRes, myRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/courses`),
+          fetch(`${API_BASE_URL}/api/courses/my-courses`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+        ]);
+
+        const exploreData = await exploreRes.json();
+        const myData = myRes.ok ? await myRes.json() : [];
+
+        setExploreCourses(exploreData);
+        setMyCourses(myData);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  /* ================= ENROLL ================= */
+  const handleEnroll = async () => {
+    if (!selectedCourse) return;
+
+    try {
+      const token = localStorage.getItem("token");
+
+      await fetch(`${API_BASE_URL}/api/users/purchase-course`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          courseId: selectedCourse.id,
+          courseTitle: selectedCourse.title,
+        }),
+      });
+
+      const [exploreRes, myRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/courses`),
+        fetch(`${API_BASE_URL}/api/courses/my-courses`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      setExploreCourses(await exploreRes.json());
+      setMyCourses(await myRes.json());
+
+      setShowEnrollPopup(false);
+      setSelectedCourse(null);
+      setActiveTab("my-courses");
+    } catch (error) {
+      console.error("Enroll error:", error);
+    }
   };
-
-  /* ---------------- MY COURSES DATA ---------------- */
-  const mockCourses = [
-    {
-      id: 1,
-      title: "React Fundamentals",
-      status: "In Progress",
-      progress: 75,
-      lessons: "18 of 24 lessons",
-      level: "Intermediate",
-      image:
-        "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&auto=format&fit=crop&q=60",
-      statusColor: "bg-blue-500",
-      levelColor: "bg-purple-50 text-purple-600",
-      progressColor: "bg-blue-500",
-      buttonClass: "bg-[#2DD4BF] hover:bg-[#14B8A6] text-white",
-    },
-    {
-      id: 2,
-      title: "Python For AI",
-      status: "In Progress",
-      progress: 50,
-      lessons: "9 of 20 lessons",
-      level: "Advanced",
-      image:
-        "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=60",
-      statusColor: "bg-blue-500",
-      levelColor: "bg-orange-50 text-orange-600",
-      progressColor: "bg-blue-500",
-      buttonClass: "bg-[#2DD4BF] hover:bg-[#14B8A6] text-white",
-    },
-    {
-      id: 3,
-      title: "AI Ethics & Bias",
-      status: "Completed",
-      progress: 100,
-      lessons: "6 of 6 lessons",
-      level: "Beginner",
-      image:
-        "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&auto=format&fit=crop&q=60",
-      statusColor: "bg-green-500",
-      levelColor: "bg-green-50 text-green-600",
-      progressColor: "bg-green-500",
-      buttonClass: "bg-[#F1F5F9] text-[#94A3B8] cursor-not-allowed",
-    },
-  ];
-
-  /* ---------------- EXPLORE COURSES DATA ---------------- */
-  const exploreCourses = [
-    {
-      id: 1,
-      title: "React Fundamentals",
-      category: "Development",
-      lessons: 24,
-      level: "Intermediate",
-      students: "2.5k",
-      price: 1999,
-      rating: 4.8,
-      image:
-        "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&auto=format&fit=crop&q=60",
-    },
-    {
-      id: 2,
-      title: "Python For AI",
-      category: "AI & ML",
-      lessons: 20,
-      level: "Advanced",
-      students: "2.5k",
-      price: 1299,
-      rating: 4.9,
-      image:
-        "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=60",
-    },
-    {
-      id: 3,
-      title: "AI Ethics & Bias",
-      category: "AI & ML",
-      lessons: 6,
-      level: "Beginner",
-      students: "2.5k",
-      price: 1499,
-      rating: 4.7,
-      image:
-        "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&auto=format&fit=crop&q=60",
-    },
-    {
-      id: 4,
-      title: "Full Stack Web Development",
-      category: "Development",
-      lessons: 36,
-      level: "Beginner",
-      students: "2.5k",
-      price: 1299,
-      rating: 4.9,
-      image:
-        "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=60",
-    },
-  ];
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-900 mb-4">
-            Please Login
-          </h1>
-          <p className="text-slate-500">
-            You need to be logged in to access the courses page.
-          </p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        Please login to access courses
       </div>
     );
   }
@@ -150,23 +115,23 @@ const CoursesPage = () => {
       >
         <main className="mt-16 p-8">
           <div className="max-w-7xl mx-auto space-y-10">
-            {/* Header */}
+            {/* HEADER */}
             <div>
               <h1 className="text-3xl font-bold text-slate-900">
                 Learning Hub
               </h1>
               <p className="text-slate-500 mt-1">
-                Discover and continue your AI learning journey
+                Discover and continue your learning journey
               </p>
             </div>
 
-            {/* Tabs */}
-            <div className="bg-white rounded-xl p-2 inline-flex border border-slate-100 shadow-sm">
+            {/* TABS */}
+            <div className="bg-white rounded-xl p-2 inline-flex border">
               <button
                 onClick={() => setActiveTab("my-courses")}
-                className={`px-6 py-2 rounded-lg font-semibold transition ${
+                className={`px-6 py-2 rounded-lg font-semibold ${
                   activeTab === "my-courses"
-                    ? "bg-[#2DD4BF] text-white shadow"
+                    ? "bg-[#2DD4BF] text-white"
                     : "text-slate-500"
                 }`}
               >
@@ -174,9 +139,9 @@ const CoursesPage = () => {
               </button>
               <button
                 onClick={() => setActiveTab("explore")}
-                className={`px-6 py-2 rounded-lg font-semibold transition ${
+                className={`px-6 py-2 rounded-lg font-semibold ${
                   activeTab === "explore"
-                    ? "bg-[#2DD4BF] text-white shadow"
+                    ? "bg-[#2DD4BF] text-white"
                     : "text-slate-500"
                 }`}
               >
@@ -184,63 +149,38 @@ const CoursesPage = () => {
               </button>
             </div>
 
-            {/* ---------------- MY COURSES ---------------- */}
+            {/* ================= MY COURSES ================= */}
             {activeTab === "my-courses" && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {mockCourses.map((course) => (
+                {myCourses.length === 0 && (
+                  <p className="text-slate-500">
+                    You have not enrolled in any courses yet.
+                  </p>
+                )}
+
+                {myCourses.map((course) => (
                   <div
                     key={course.id}
-                    className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm"
+                    className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden"
                   >
-                    <div className="relative h-40">
-                      <img
-                        src={course.image}
-                        className="w-full h-full object-cover"
-                        alt={course.title}
-                      />
-                      <span
-                        className={`absolute top-4 left-4 px-4 py-1.5 rounded-full text-xs font-semibold text-white ${course.statusColor}`}
-                      >
-                        {course.status}
-                      </span>
-                    </div>
+                    <img
+                      src={course.image}
+                      alt={course.title}
+                      className="h-40 w-full object-cover"
+                    />
 
                     <div className="p-6 space-y-4">
-                      <h3 className="text-lg font-semibold text-slate-900">
+                      <h3 className="font-semibold text-slate-900">
                         {course.title}
                       </h3>
 
-                      <div>
-                        <div className="h-2 bg-slate-100 rounded-full">
-                          <div
-                            className={`h-2 rounded-full ${course.progressColor}`}
-                            style={{ width: `${course.progress}%` }}
-                          />
-                        </div>
-                        <p className="text-xs text-slate-400 mt-1">
-                          {course.progress}% Complete
-                        </p>
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-400">
-                          {course.lessons}
-                        </span>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${course.levelColor}`}
-                        >
-                          {course.level}
-                        </span>
-                      </div>
+                      <p className="text-sm text-slate-400">{course.lessons}</p>
 
                       <button
-                        disabled={course.status === "Completed"}
-                        onClick={() => Navigate(`/learning/${course.id}`)}
-                        className={`w-full py-3 rounded-xl font-semibold transition ${course.buttonClass}`}
+                        onClick={() => navigate(`/learning/${course.id}`)}
+                        className="w-full py-3 rounded-xl bg-[#2DD4BF] text-white font-semibold"
                       >
-                        {course.status === "Completed"
-                          ? "Review Course"
-                          : "Continue Learning"}
+                        Continue Learning
                       </button>
                     </div>
                   </div>
@@ -248,60 +188,105 @@ const CoursesPage = () => {
               </div>
             )}
 
-            {/* ---------------- EXPLORE COURSES ---------------- */}
+            {/* ================= EXPLORE COURSES ================= */}
             {activeTab === "explore" && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {exploreCourses.map((course) => (
-                  <div
-                    key={course.id}
-                    className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
-                  >
-                    <div className="relative h-40">
-                      <img
-                        src={course.image}
-                        className="w-full h-full object-cover"
-                        alt={course.title}
-                      />
-                      <div className="absolute bottom-3 right-3 bg-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow">
-                        <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                        {course.rating}
+                {exploreCourses
+                  .filter(
+                    (course) => !myCourses.some((c) => c.id === course.id)
+                  )
+                  .map((course) => (
+                    <div
+                      key={course.id}
+                      className="bg-white rounded-2xl border shadow-sm overflow-hidden"
+                    >
+                      <div className="relative h-40">
+                        <img
+                          src={course.image}
+                          className="w-full h-full object-cover"
+                          alt={course.title}
+                        />
+                        <div className="absolute bottom-3 right-3 bg-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow">
+                          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                          {course.rating}
+                        </div>
+                      </div>
+
+                      <div className="p-4 space-y-3">
+                        <h3 className="text-sm font-semibold">
+                          {course.title}
+                        </h3>
+
+                        <p className="text-xs text-slate-400">
+                          {course.lessons} • {course.level}
+                        </p>
+
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <span className="line-through text-sm text-slate-400 mr-2">
+                              ₹{course.price}
+                            </span>
+                            <span className="font-bold text-green-600">₹0</span>
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              setSelectedCourse(course);
+                              setShowEnrollPopup(true);
+                            }}
+                            className="px-4 py-2 rounded-lg bg-[#2DD4BF] text-white text-xs font-semibold"
+                          >
+                            Enroll
+                          </button>
+                        </div>
                       </div>
                     </div>
-
-                    <div className="p-4 space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs px-3 py-1 rounded-full bg-cyan-50 text-cyan-600 font-semibold">
-                          {course.category}
-                        </span>
-                        <span className="text-xs text-slate-400">
-                          {course.students} students
-                        </span>
-                      </div>
-
-                      <h3 className="text-sm font-semibold text-slate-900">
-                        {course.title}
-                      </h3>
-
-                      <p className="text-xs text-slate-400">
-                        {course.lessons} lessons • {course.level}
-                      </p>
-
-                      <div className="flex justify-between items-center pt-2">
-                        <span className="font-bold text-slate-900">
-                          ₹{course.price}
-                        </span>
-                        <button className="w-9 h-9 rounded-full border border-cyan-400 flex items-center justify-center text-cyan-500 hover:bg-cyan-50">
-                          <Bookmark className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
           </div>
         </main>
       </div>
+
+      {/* ================= ENROLL POPUP ================= */}
+      {showEnrollPopup && selectedCourse && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-md rounded-2xl p-6 relative">
+            <button
+              onClick={() => setShowEnrollPopup(false)}
+              className="absolute top-4 right-4"
+            >
+              <X />
+            </button>
+
+            <img
+              src={selectedCourse.image}
+              alt={selectedCourse.title}
+              className="w-full h-40 object-cover rounded-xl mb-4"
+            />
+
+            <h2 className="text-xl font-bold">{selectedCourse.title}</h2>
+
+            <p className="text-sm text-slate-500 mt-1">
+              {selectedCourse.category} • {selectedCourse.level}
+            </p>
+
+            <div className="flex justify-between items-center mt-4">
+              <span className="line-through text-slate-400">
+                ₹{selectedCourse.price}
+              </span>
+              <span className="text-lg font-bold text-green-600">₹0</span>
+            </div>
+
+            <button
+              onClick={handleEnroll}
+              className="w-full mt-6 py-3 rounded-xl bg-[#2DD4BF] text-white font-semibold"
+            >
+              Confirm Enrollment
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

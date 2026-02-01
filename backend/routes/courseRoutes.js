@@ -17,24 +17,23 @@ import { protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 /* =======================
-   PUBLIC ROUTES
+   FIXED ORDER (IMPORTANT)
 ======================= */
+
+// PUBLIC
 router.route("/").get(getCourses);
 
-/* =======================
-   PROTECTED ROUTES
-======================= */
-router.route("/stats/cards").get(protect, getStatsCards);
+// PROTECTED (KEEP BEFORE :id)
 router.route("/my-courses").get(protect, getMyCourses);
+router.route("/stats/cards").get(protect, getStatsCards);
 
-/* =======================
-    COURSE LEARNING
-======================= */
+// COURSE LEARNING
 router.route("/:id/learning").get(getCourseLearningData);
 
-/* =======================
-   ADMIN / MANAGEMENT
-======================= */
+// DYNAMIC (ALWAYS LAST)
+router.route("/:id").get(getCourseById);
+
+// ADMIN (UNCHANGED)
 router.route("/").post(protect, addCourse);
 router.route("/:id").delete(protect, deleteCourse);
 router.route("/:courseId/modules").post(protect, addModules);
@@ -43,10 +42,5 @@ router
   .route("/:courseId/lessons/:lessonId/video")
   .put(protect, updateLessonVideo);
 router.route("/:courseId/subtopics").post(protect, addSubtopics);
-
-/* =======================
-   DYNAMIC (KEEP LAST)
-======================= */
-router.route("/:id").get(getCourseById);
 
 export default router;
