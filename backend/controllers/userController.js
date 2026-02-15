@@ -22,7 +22,7 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: "Email and password required" });
     }
 
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ where: { email } });
     if (userExists) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -36,7 +36,7 @@ const registerUser = async (req, res) => {
     });
 
     res.status(201).json({
-      _id: user._id,
+      id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       name: user.name,
@@ -44,7 +44,7 @@ const registerUser = async (req, res) => {
       role: user.role,
       bio: user.bio,
       purchasedCourses: user.purchasedCourses,
-      token: generateToken(user._id),
+      token: generateToken(user.id),
     });
   } catch (error) {
     console.error("REGISTER ERROR:", error.message);
@@ -61,14 +61,14 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Email and password required" });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ where: { email } });
 
     if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     res.json({
-      _id: user._id,
+      id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       name: user.name,
@@ -76,7 +76,7 @@ const loginUser = async (req, res) => {
       role: user.role,
       bio: user.bio,
       purchasedCourses: user.purchasedCourses,
-      token: generateToken(user._id),
+      token: generateToken(user.id),
     });
   } catch (error) {
     console.error("LOGIN ERROR:", error.message);
@@ -91,11 +91,11 @@ const getUserProfile = async (req, res) => {
       return res.status(401).json({ message: "Not authorized" });
     }
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({
-      _id: user._id,
+      id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       name: user.name,
@@ -116,7 +116,7 @@ const purchaseCourse = async (req, res) => {
     if (!req.user) return res.status(401).json({ message: "Not authorized" });
 
     const { courseId, courseTitle } = req.body;
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user.id);
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -128,13 +128,17 @@ const purchaseCourse = async (req, res) => {
       return res.status(400).json({ message: "Course already purchased" });
     }
 
-    user.purchasedCourses.push({
-      courseId: Number(courseId),
-      courseTitle,
-      purchaseDate: new Date(),
-      progress: { completedLessons: [], currentLesson: null },
-    });
+    const updatedCourses = [
+      ...user.purchasedCourses,
+      {
+        courseId: Number(courseId),
+        courseTitle,
+        purchaseDate: new Date(),
+        progress: { completedLessons: [], currentLesson: null },
+      },
+    ];
 
+    user.purchasedCourses = updatedCourses;
     await user.save();
 
     res.json({ message: "Course purchased successfully" });
@@ -149,11 +153,11 @@ const updateCourseProgress = async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ message: "Not authorized" });
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
     
 
-    user.analytics ||= {
+    user.analytics = user.analytics || {
       totalHours: 0,
       // daysStudied: 0, it should be calculated. so no need to store it in db
       completedCourses: 0,
@@ -184,12 +188,13 @@ const updateUserSettings = async (req, res) => {
 const updateUserProfile = async (req, res) => {
   res.status(501).json({ message: "updateUserProfile not implemented yet" });
 };
+
 // ❗ DEV / ADMIN ONLY
 const removePurchasedCourse = async (req, res) => {
   try {
     const { courseId } = req.body;
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     user.purchasedCourses = user.purchasedCourses.filter(

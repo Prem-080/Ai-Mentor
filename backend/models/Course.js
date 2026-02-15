@@ -1,19 +1,48 @@
-import mongoose from "mongoose";
+import { DataTypes, Model } from "sequelize";
+import { sequelize } from "../config/db.js";
 
-const CourseSchema = new mongoose.Schema({
-  id: { type: Number, required: true, unique: true },
-  title: String,
-  category: String,
-  level: String,
+class Course extends Model {}
 
-  // REQUIRED BY FRONTEND (DO NOT REMOVE)
-  lessons: String,
-  price: Number,
+Course.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      allowNull: false,
+    },
+    title: {
+      type: DataTypes.STRING,
+    },
+    category: {
+      type: DataTypes.STRING,
+    },
+    level: {
+      type: DataTypes.STRING,
+    },
+    lessons: {
+      type: DataTypes.STRING,
+    },
+    price: {
+      type: DataTypes.FLOAT,
+    },
+    students: {
+      type: DataTypes.STRING,
+    },
+    rating: {
+      type: DataTypes.FLOAT,
+    },
+    image: {
+      type: DataTypes.STRING,
+    },
+    categoryColor: {
+      type: DataTypes.STRING,
+    },
+  },
+  {
+    sequelize,
+    modelName: "Course",
+    timestamps: false,
+  }
+);
 
-  students: String,
-  rating: Number,
-  image: String,
-  categoryColor: String,
-});
-
-export default mongoose.model("Course", CourseSchema);
+export default Course;

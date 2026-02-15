@@ -3,6 +3,7 @@ import Header from "../components/Header";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getAIVideo } from "../service/aiService";
+import VideoPlayer from "../components/video/VideoPlayer";
 
 import {
   ChevronLeft,
@@ -41,11 +42,11 @@ export default function Learning() {
   const [activeCaption, setActiveCaption] = useState("");
   const celebrities = ["Salman Khan", "Modi ji", "SRK"];
 
-  // map celebrities to local videos and vtt files
+  // map celebrities to videos and vtt files
   const celebrityVideoMap = {
-    "Salman Khan": { video: "/vdo1.mp4", vtt: "/vdo1.vtt" },
-    "Modi ji": { video: "/vdo2.mp4", vtt: "/vdo2.vtt" },
-    SRK: { video: "/vdo1.mp4", vtt: "/vdo1.vtt" },
+    "Salman Khan": { video: "http://localhost:5000/videos/salman.mp4", vtt: "http://localhost:5000/videos/salman.vtt" },
+    "Modi ji": { video: "http://localhost:5000/videos/modi.mp4", vtt: "http://localhost:5000/videos/modi.vtt" },
+    SRK: { video: "http://localhost:5000/videos/srk.mp4", vtt: "http://localhost:5000/videos/srk.vtt" },
   };
 
   const [selectedCelebrity, setSelectedCelebrity] = useState(null);
@@ -130,25 +131,25 @@ export default function Learning() {
                 lessons: [
                   {
                     id: 1,
-                    title: "Introduction to Reactjs",
+                    title: "Introduction to React",
                     type: "video",
                     duration: "0:10",
-                    videoUrl: "/vdo1.mp4",
+                    youtubeUrl: "https://www.youtube.com/watch?v=Ke90Tje7VS0",
                     content: {
                       introduction:
-                        "Reactjs is a high-level, object-oriented programming language that was originally developed by Sun Microsystems in 1995 and is now owned by Oracle Corporation. It is designed to be platform-independent, meaning that Reactjs code can run on any device that has a Reactjs Virtual Machine (JVM), making it highly versatile for developing cross-platform applications. Reactjs emphasizes object-oriented principles, such as encapsulation, inheritance and polymorphism, which allow developers to create modular, reusable and maintainable code. It has a strong memory management system, including automatic garbage collection, which reduces the likelihood of memory leaks.",
+                        "React is a JavaScript library for building user interfaces. It was developed by Facebook and is now maintained by Meta and the open-source community. React allows developers to create reusable UI components and manage the state of their applications efficiently.",
                       keyConcepts: [],
                     },
                   },
                   {
                     id: 2,
-                    title: "Reactjs: Advanced Concepts",
+                    title: "React: Advanced Concepts",
                     type: "video",
                     duration: "0:12",
-                    videoUrl: "/vdo2.mp4",
+                    youtubeUrl: "https://www.youtube.com/watch?v=4UZrsTqkcW4",
                     content: {
                       introduction:
-                        "Continuation video for Reactjs advanced concepts.",
+                        "Advanced React concepts including hooks, context, and performance optimization techniques.",
                       keyConcepts: [],
                     },
                   },
@@ -182,10 +183,10 @@ export default function Learning() {
           "Error fetching learning data, using local fallback:",
           error
         );
+        // Use the same fallback as above
         const fallback = {
           course: {
             id: parseInt(courseId),
-            title: "Local Demo Course",
           },
           modules: [
             {
@@ -194,25 +195,25 @@ export default function Learning() {
               lessons: [
                 {
                   id: 1,
-                  title: "Introduction to Reactjs",
+                  title: "Introduction to React",
                   type: "video",
                   duration: "0:10",
-                  videoUrl: "/vdo1.mp4",
+                  youtubeUrl: "https://www.youtube.com/watch?v=Ke90Tje7VS0",
                   content: {
                     introduction:
-                      "Reactjs is a high-level, object-oriented programming language that was originally developed by Sun Microsystems in 1995 and is now owned by Oracle Corporation. It is designed to be platform-independent, meaning that Reactjs code can run on any device that has a Reactjs Virtual Machine (JVM), making it highly versatile for developing cross-platform applications. Reactjs emphasizes object-oriented principles, such as encapsulation, inheritance and polymorphism, which allow developers to create modular, reusable and maintainable code. It has a strong memory management system, including automatic garbage collection, which reduces the likelihood of memory leaks.",
+                      "React is a JavaScript library for building user interfaces. It was developed by Facebook and is now maintained by Meta and the open-source community. React allows developers to create reusable UI components and manage the state of their applications efficiently.",
                     keyConcepts: [],
                   },
                 },
                 {
                   id: 2,
-                  title: "Reactjs: Advanced Concepts",
+                  title: "React: Advanced Concepts",
                   type: "video",
                   duration: "0:12",
-                  videoUrl: "/vdo2.mp4",
+                  youtubeUrl: "https://www.youtube.com/watch?v=4UZrsTqkcW4",
                   content: {
                     introduction:
-                      "Continuation video for Reactjs advanced concepts.",
+                      "Advanced React concepts including hooks, context, and performance optimization techniques.",
                     keyConcepts: [],
                   },
                 },
@@ -221,6 +222,15 @@ export default function Learning() {
           ],
           currentLesson: {
             id: 1,
+            title: "Introduction to React",
+            type: "video",
+            duration: "0:10",
+            youtubeUrl: "https://www.youtube.com/watch?v=Ke90Tje7VS0",
+            content: {
+              introduction:
+                "React is a JavaScript library for building user interfaces. It was developed by Facebook and is now maintained by Meta and the open-source community. React allows developers to create reusable UI components and manage the state of their applications efficiently.",
+              keyConcepts: [],
+            },
           },
         };
 
@@ -573,7 +583,7 @@ export default function Learning() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50">
       <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Sidebar */}
@@ -632,8 +642,11 @@ export default function Learning() {
                 ))}
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="mb-6">
+      <div className="ml-80 p-6">
+        <div className="mb-6">
             {(() => {
               const completedCount =
                 user?.purchasedCourses?.find(
@@ -664,6 +677,125 @@ export default function Learning() {
               );
             })()}
           </div>
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {/* Video Player */}
+            <VideoPlayer
+              currentLesson={currentLesson}
+              aiVideoUrl={aiVideoUrl}
+              selectedCelebrity={selectedCelebrity}
+              celebrityVideoMap={celebrityVideoMap}
+              activeCaption={activeCaption}
+              playerContainerRef={playerContainerRef}
+              videoRef={videoRef}
+              handleProgress={handleProgress}
+              getYouTubeVideoId={getYouTubeVideoId}
+            />
+
+            {/* Lesson Content */}
+            <div className="xl:col-span-1 space-y-6">
+              <div className="bg-white rounded-lg p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  {currentLesson?.title || "Select a Lesson"}
+                </h3>
+                {currentLesson?.content?.introduction && (
+                  <div className="prose prose-sm max-w-none">
+                    <p className="text-gray-700">
+                      {currentLesson.content.introduction}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Custom Controls */}
+              <div className="bg-white rounded-lg p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <button
+                    onClick={togglePlay}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    {isPlaying ? (
+                      <Pause className="w-4 h-4" />
+                    ) : (
+                      <Play className="w-4 h-4" />
+                    )}
+                    {isPlaying ? "Pause" : "Play"}
+                  </button>
+                  <button
+                    onClick={toggleFullscreen}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  >
+                    {isFullscreen ? (
+                      <Minimize className="w-4 h-4" />
+                    ) : (
+                      <Maximize className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="mb-4">
+                  <div
+                    className="w-full bg-gray-200 rounded-full h-2 cursor-pointer"
+                    onClick={handleSeek}
+                  >
+                    <div
+                      className="bg-blue-600 h-2 rounded-full"
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>{formatTime(currentTime)}</span>
+                    <span>{formatTime(duration)}</span>
+                  </div>
+                </div>
+
+                {/* Volume Control */}
+                <div className="flex items-center gap-2">
+                  <button onClick={toggleMute} className="text-gray-600">
+                    {isMuted || volume === 0 ? (
+                      <VolumeX className="w-4 h-4" />
+                    ) : (
+                      <Volume2 className="w-4 h-4" />
+                    )}
+                  </button>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={volume}
+                    onChange={handleVolumeChange}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              {/* Navigation */}
+              <div className="bg-white rounded-lg p-6 shadow-sm">
+                <div className="flex justify-between">
+                  <button
+                    onClick={handlePrevious}
+                    disabled={currentLessonIndex <= 0}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    disabled={currentLessonIndex >= allLessons.length - 1}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-2">
             {(() => {
               const q = searchQuery.trim().toLowerCase();
@@ -685,228 +817,73 @@ export default function Learning() {
               }
 
               return (
-                filteredModules.length > 0 ? filteredModules : modules || []
-              ).map((module) => (
-                <div
-                  key={module.id}
-                  className="border border-gray-200 rounded-lg"
-                >
-                  <button
-                    onClick={() => toggleModule(module.id)}
-                    className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50"
-                  >
-                    <span className="font-medium text-gray-900">
-                      {module.title}
-                    </span>
-                    <ChevronDown
-                      className={`w-4 h-4 transition-transform ${
-                        expandedModule === module.id ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-
-                  {expandedModule === module.id && (
-                    <div className="px-4 pb-4 space-y-2">
-                      {module.lessons.map((lesson) => (
-                        <button
-                          key={lesson.id}
-                          onClick={() => handleLessonClick(lesson)}
-                          className={`w-full flex items-center gap-3 p-3 rounded-lg text-left hover:bg-gray-50 ${
-                            currentLesson?.id === lesson.id
-                              ? "bg-blue-50 border border-blue-200"
-                              : ""
+                <div>
+                  {(filteredModules.length > 0 ? filteredModules : modules || []).map((module) => (
+                    <div
+                      key={module.id}
+                      className="border border-gray-200 rounded-lg"
+                    >
+                      <button
+                        onClick={() => toggleModule(module.id)}
+                        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50"
+                      >
+                        <span className="font-medium text-gray-900">
+                          {module.title}
+                        </span>
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform ${
+                            expandedModule === module.id ? "rotate-180" : ""
                           }`}
-                        >
-                          {lesson.type === "video" ? (
-                            <Play className="w-4 h-4 text-gray-400" />
-                          ) : (
-                            <FileText className="w-4 h-4 text-gray-400" />
-                          )}
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900">
-                              {lesson.title}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {lesson.duration}
-                            </p>
-                          </div>
-                          {user?.purchasedCourses
-                            ?.find(
-                              (course) => course.courseId === parseInt(courseId)
-                            )
-                            ?.progress?.completedLessons?.some(
-                              (cl) => cl.lessonId === lesson.id
-                            ) ? (
-                            <Check className="w-4 h-4 text-green-500" />
-                          ) : (
-                            <Circle className="w-4 h-4 text-gray-300" />
-                          )}
-                        </button>
-                      ))}
+                        />
+                      </button>
+
+                      {expandedModule === module.id && (
+                        <div className="px-4 pb-4 space-y-2">
+                          {module.lessons.map((lesson) => (
+                            <button
+                              key={lesson.id}
+                              onClick={() => handleLessonClick(lesson)}
+                              className={`w-full flex items-center gap-3 p-3 rounded-lg text-left hover:bg-gray-50 ${
+                                currentLesson?.id === lesson.id
+                                  ? "bg-blue-50 border border-blue-200"
+                                  : ""
+                              }`}
+                            >
+                              {lesson.type === "video" ? (
+                                <Play className="w-4 h-4 text-gray-400" />
+                              ) : (
+                                <FileText className="w-4 h-4 text-gray-400" />
+                              )}
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-900">
+                                  {lesson.title}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {lesson.duration}
+                                </p>
+                              </div>
+                              {user?.purchasedCourses
+                                ?.find(
+                                  (course) => course.courseId === parseInt(courseId)
+                                )
+                                ?.progress?.completedLessons?.some(
+                                  (cl) => cl.lessonId === lesson.id
+                                ) ? (
+                                <Check className="w-4 h-4 text-green-500" />
+                              ) : (
+                                <Circle className="w-4 h-4 text-gray-300" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ))}
                 </div>
-              ));
+              );
             })()}
           </div>
         </div>
       </div>
-
-      {/* Main Content */}
-      <div className="ml-80 flex-1 mt-16">
-        <main className="p-8 space-y-8">
-          {/* Video Player */}
-          <div
-            ref={playerContainerRef}
-            className="relative bg-black rounded-lg overflow-hidden group"
-            style={{ aspectRatio: "16/9" }}
-          >
-            {isAIVideoLoading && (
-              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
-                <div className="w-12 h-12 border-4 border-gray-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-gray-400 text-sm mt-2">
-                  This may take a few moments
-                </p>
-              </div>
-            )}
-            {currentLesson?.youtubeUrl ? (
-              <iframe
-                key={currentLesson.id}
-                src={`https://www.youtube.com/embed/${getYouTubeVideoId(
-                  currentLesson.youtubeUrl
-                )}`}
-                className="w-full h-full"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title={currentLesson.title}
-              ></iframe>
-            ) : (
-              <video
-                ref={videoRef}
-                src={
-                  aiVideoUrl ||
-                  (selectedCelebrity &&
-                    celebrityVideoMap[selectedCelebrity] &&
-                    celebrityVideoMap[selectedCelebrity].video) ||
-                  currentLesson?.videoUrl
-                }
-                className="w-full h-full object-contain bg-black"
-                onTimeUpdate={handleProgress}
-                onLoadedMetadata={handleProgress}
-                onEnded={() => {
-                  setIsPlaying(false);
-                }}
-                controls={false}
-                playsInline
-                preload="metadata"
-              />
-            )}
-
-            {/* Caption overlay (custom) */}
-            {activeCaption && (
-              <div className="absolute left-1/2 transform -translate-x-1/2 bottom-16 px-4 py-2 bg-black/70 text-white rounded-md max-w-3xl text-center">
-                <p className="text-sm leading-relaxed">{activeCaption}</p>
-              </div>
-            )}
-
-            {/* Video Controls - Only show for local videos, not YouTube */}
-            {!currentLesson?.youtubeUrl && (
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={togglePlay}
-                    className="text-white hover:scale-110 transition-transform"
-                  >
-                    {isPlaying ? (
-                      <Pause className="w-6 h-6" />
-                    ) : (
-                      <Play className="w-6 h-6" />
-                    )}
-                  </button>
-
-                  <div className="flex-1 flex items-center gap-2">
-                    <span className="text-white text-sm">
-                      {formatTime(currentTime)}
-                    </span>
-                    <div
-                      className="flex-1 h-1 bg-gray-600 rounded-lg cursor-pointer"
-                      onClick={handleSeek}
-                    >
-                      <div
-                        className="h-full bg-white rounded-lg"
-                        style={{ width: `${progress}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-white text-sm">
-                      {formatTime(duration)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={toggleMute}
-                      className="text-white hover:scale-110 transition-transform"
-                    >
-                      {isMuted ? (
-                        <VolumeX className="w-5 h-5" />
-                      ) : (
-                        <Volume2 className="w-5 h-5" />
-                      )}
-                    </button>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.1"
-                      value={volume}
-                      onChange={handleVolumeChange}
-                      className="w-20 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer range-sm accent-white"
-                    />
-                  </div>
-
-                  <button
-                    onClick={toggleFullscreen}
-                    className="text-white hover:scale-110 transition-transform"
-                  >
-                    {isFullscreen ? (
-                      <Minimize className="w-5 h-5" />
-                    ) : (
-                      <Maximize className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Lesson Content */}
-          <div className="max-w-4xl space-y-6">
-            {/* Only show navigation buttons below the player; content cards removed to avoid duplicate text */}
-            <div className="flex items-center justify-between pt-8">
-              <button
-                onClick={handlePrevious}
-                disabled={currentLessonIndex <= 0}
-                className="px-6 py-3 rounded-lg bg-gray-600 text-white font-medium hover:bg-gray-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Previous
-              </button>
-
-              <button
-                onClick={handleNext}
-                disabled={
-                  currentLessonIndex >= allLessons.length - 1 || isNavigating
-                }
-                className="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium shadow-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isNavigating ? "Loading..." : "Next"}
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </main>
-      </div>
-    </div>
-  );
-}
+   );
+ }

@@ -6,7 +6,7 @@ import User from "../models/User.js";
 // @access  Private
 const getUserAnalytics = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user.id);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -86,21 +86,19 @@ const recordStudySession = async (req, res) => {
   try {
     const { hours, date } = req.body;
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user.id);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     // ✅ Ensure analytics object exists
-    if (!user.analytics) {
-      user.analytics = {
-        totalHours: 0,
-        daysStudied: 0,
-        studySessions: [],
-        lastStudyDate: null,
-      };
-    }
+    const analytics = user.analytics || {
+      totalHours: 0,
+      daysStudied: 0,
+      studySessions: [],
+      lastStudyDate: null,
+    };
 
     const sessionDate = date ? new Date(date) : new Date();
 
@@ -114,13 +112,16 @@ const recordStudySession = async (req, res) => {
       user.analytics.lastStudyDate = sessionDate;
     }
 
-    user.analytics.totalHours += hours;
+    analytics.totalHours += hours;
 
-    user.analytics.studySessions.push({
+    analytics.studySessions.push({
       date: sessionDate,
       hours: hours,
     });
 
+    user.analytics = analytics;
+    // For JSONB, we need to tell Sequelize that the object has changed
+    user.changed("analytics", true);
     await user.save();
 
     res.json({

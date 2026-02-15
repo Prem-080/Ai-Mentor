@@ -4,7 +4,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 
-import connectDB from "./config/db.js";
+import { connectDB, sequelize } from "./config/db.js";
 
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -15,7 +15,6 @@ import sidebarRoutes from "./routes/sidebarRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
 
 dotenv.config();
-connectDB();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -59,6 +58,22 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-});
+
+// Initialize database and start server
+const startServer = async () => {
+  try {
+    await connectDB();
+    // Sync database models
+    await sequelize.sync({ alter: true });
+    console.log("✅ Database models synced successfully");
+    
+    app.listen(PORT, () => {
+      console.log(`✅ Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
