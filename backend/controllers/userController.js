@@ -107,6 +107,13 @@ const changePassword = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Users authenticated via OAuth may not have a local password set
+    if (!user.password) {
+      return res.status(400).json({
+        message:
+          "No local password is set for this account. Please set a password via the password reset flow.",
+      });
+    }
     // Check current password
     const isMatch = await user.matchPassword(currentPassword);
 
