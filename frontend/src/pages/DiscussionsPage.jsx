@@ -102,6 +102,8 @@ const DiscussionsPage = () => {
   const [panelLoading, setPanelLoading] = useState(false);
   const [panelSort, setPanelSort] = useState("Recent");
   const [panelReplyText, setPanelReplyText] = useState("");
+  const [panelReplyingTo, setPanelReplyingTo] = useState(null);
+  const [panelReplyInputText, setPanelReplyInputText] = useState("");
   const [allCourses, setAllCourses] = useState([]);
 
   /* ── global community state ── */
@@ -506,7 +508,7 @@ const DiscussionsPage = () => {
               {selectedCourse && (
                 <div
                   ref={panelRef}
-                  className="fixed top-0 right-0 h-full w-full sm:w-100 bg-card border-l border-border shadow-2xl z-50 flex flex-col"
+                  className="fixed top-18 right-0 h-[calc(100%-72px)] w-full sm:w-100 bg-card border-l border-border shadow-2xl z-50 flex flex-col"
                 >
                   {/* panel header */}
                   <div className="p-4 border-b border-border flex items-center justify-between shrink-0">
@@ -620,8 +622,73 @@ const DiscussionsPage = () => {
                                   <ThumbsDown className="w-3.5 h-3.5" />
                                   {post.dislikes?.length || 0}
                                 </button>
-                                <span className="hover:text-main cursor-pointer">{t("discussions.reply")}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setPanelReplyingTo(panelReplyingTo === post.id ? null : post.id);
+                                    setPanelReplyInputText("");
+                                  }}
+                                  className="hover:text-main cursor-pointer bg-transparent p-0 border-0"
+                                  aria-expanded={panelReplyingTo === post.id}
+                                  aria-controls={`panel-reply-${post.id}`}
+                                >
+                                  {t("discussions.reply")} ({post.replies?.length || 0})
+                                </button>
                               </div>
+
+                              {/* Reply Input */}
+                              {panelReplyingTo === post.id && (
+                                <div
+                                  className="mt-2 flex items-center gap-2"
+                                  id={`panel-reply-${post.id}`}
+                                >
+                                  <input
+                                    type="text"
+                                    placeholder="Write a reply..."
+                                    value={panelReplyInputText}
+                                    onChange={(e) => setPanelReplyInputText(e.target.value)}
+                                    onKeyDown={async (e) => {
+                                      if (e.key === "Enter" && !e.shiftKey) {
+                                        e.preventDefault();
+                                        const text = panelReplyInputText.trim();
+                                        if (!text) {
+                                          return;
+                                        }
+                                        try {
+                                          await handleReplySubmit(post.id, text, "panel");
+                                          setPanelReplyInputText("");
+                                          setPanelReplyingTo(null);
+                                        } catch (err) {
+                                          // Keep input/UI open so the user doesn't lose their text
+                                          console.error("Failed to submit reply from panel input:", err);
+                                        }
+                                      }
+                                    }}
+                                    className="flex-1 px-3 py-1.5 bg-input border border-border rounded-lg text-xs text-main placeholder-muted focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    autoFocus
+                                  />
+                                  <button
+                                    onClick={async () => {
+                                      const text = panelReplyInputText.trim();
+                                      if (!text) {
+                                        return;
+                                      }
+                                      try {
+                                        await handleReplySubmit(post.id, text, "panel");
+                                        setPanelReplyInputText("");
+                                        setPanelReplyingTo(null);
+                                      } catch (err) {
+                                        // Keep input/UI open so the user doesn't lose their text
+                                        console.error("Failed to submit reply from panel button:", err);
+                                      }
+                                    }}
+                                    className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-1"
+                                  >
+                                    <Send className="w-3 h-3" />
+                                    Reply
+                                  </button>
+                                </div>
+                              )}
 
                               {/* Replies */}
                               {post.replies?.length > 0 && (
