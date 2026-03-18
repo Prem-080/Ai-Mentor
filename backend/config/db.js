@@ -3,27 +3,25 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    dialect: "postgres",
-    port: process.env.DB_PORT,
-    logging: false,
-  }
-);
+const sequelize = new Sequelize(process.env.NEON_DATABASE_URL, {
+  dialect: "postgres",
+  logging: false,
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false,
+    },
+  },
+});
 
-const connectDB = async () => {
+async function connectDB() {
   try {
     await sequelize.authenticate();
-    console.log("✅ PostgreSQL Connected successfully.");
+    console.log("✅ Connected to Neon PostgreSQL using Sequelize");
   } catch (error) {
-    console.error("❌ PostgreSQL connection failed:", error.message);
-    process.exit(1);
+    console.error("❌ Unable to connect:", error);
   }
-};
+}
 
 export { sequelize, connectDB };
 export default connectDB;
