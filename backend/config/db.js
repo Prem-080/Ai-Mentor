@@ -29,6 +29,7 @@ async function connectDB() {
     console.log("✅ Connected to Neon PostgreSQL using Sequelize");
   } catch (error) {
     console.error("❌ Unable to connect:", error);
+    throw error;
   }
 }
 
