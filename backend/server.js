@@ -17,6 +17,7 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import "./models/CommunityPost.js";
 import "./models/Notification.js";
 import "./models/modelAssociations.js";
+import "./models/Report.js";
 
 dotenv.config();
 

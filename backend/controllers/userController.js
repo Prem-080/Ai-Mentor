@@ -407,7 +407,6 @@ const updateUserProfile = async (req, res) => {
       });
 
       user.avatar_url = result.secure_url;
-      user.avatar = `/uploads/${req.file.filename}`;
 
       // delete temp file
       fs.unlinkSync(req.file.path);

@@ -147,6 +147,27 @@
       "subtopics": [],
       "createdAt": "2026-03-14T00:00:00.000Z",
       "updatedAt": "2026-03-14T00:00:00.000Z"
-    }
+    },
+    {
+      "id": 5,
+      "title": "MongoDB Fundamentals",
+      "category": "Database",
+      "categoryColor": "bg-green-100 text-green-600",
+      "lessons": "12 lessons",
+      "lessonsCount": 12,
+      "level": "Beginner",
+      "price": "₹0",
+      "priceValue": 0,
+      "currency": "INR",
+      "rating": 4.8,
+      "students": "1.2k students",
+      "studentsCount": 1200,
+      "image": "/AI_Tutor_New_UI/Dashboard/MongoDB.png",
+      "isBookmarked": false,
+      "modules": [],
+      "subtopics": [],
+      "createdAt": "2026-01-27T00:00:00.000Z",
+      "updatedAt": "2026-01-27T00:00:00.000Z"
+   }
   ]
 }
