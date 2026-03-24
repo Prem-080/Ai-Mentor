@@ -14,6 +14,7 @@ import sidebarRoutes from "./routes/sidebarRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
 import communityRoutes from "./routes/communityRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 import "./models/CommunityPost.js";
 import "./models/Notification.js";
 import "./models/Report.js";
@@ -55,6 +56,7 @@ app.use("/api/sidebar", sidebarRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/community", communityRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
