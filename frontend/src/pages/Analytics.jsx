@@ -23,8 +23,6 @@ import {
   Sun,
   Menu
 } from "lucide-react";
-import Header from "../components/Header";
-import Sidebar from "../components/Sidebar";
 import { useAuth } from "../context/AuthContext";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -245,16 +243,7 @@ const Analytics = () => {
   const ongoingCourses = myCourses.filter(c => c.progress > 0).length;
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] dark:bg-[#0A0A0A] flex flex-col">
-      <Header />
-
-      <Sidebar activePage="analytics" />
-
-      <div
-        className={`flex-1 transition-all duration-300 mt-16 ${
-          sidebarCollapsed ? "lg:ml-20" : "lg:ml-80"
-        }`}
-      >
+    <>
         <main className="p-4 md:p-6 lg:p-8">
           {/* Dark Mode Toggle Button */}
           <div className="fixed bottom-6 right-6 z-50">
@@ -874,7 +863,6 @@ const Analytics = () => {
             </div>
           )}
         </main>
-      </div>
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
@@ -904,7 +892,7 @@ const Analytics = () => {
           animation: shimmer 2s infinite;
         }
       `}</style>
-    </div>
+    </>
   );
 };
 
