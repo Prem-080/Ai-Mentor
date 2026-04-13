@@ -33,8 +33,7 @@ const uploadImageToCloudinary = async (imagePath, courseId) => {
 
         const result = await cloudinary.uploader.upload(fullPath, {
             folder: "courses",
-            public_id: `course-${courseId}`,
-            overwrite: true,
+            public_id: `courses/${Date.now()}-${courseId}`,
         });
 
         return result.secure_url;
@@ -56,7 +55,11 @@ async function seedCourses() {
             throw new Error("❌ Seeder blocked in production");
         }
 
-        await sequelize.sync({ force: true });
+        // await sequelize.sync({ force: true });
+        await Course.truncate({
+            cascade: true,
+            restartIdentity: true,
+        });
         console.log("🧹 DB reset done\n");
 
         const coursesData = JSON.parse(fs.readFileSync(coursesPath, "utf8"));
